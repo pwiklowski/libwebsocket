@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <poll.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -34,7 +33,6 @@ typedef struct  {
 typedef void (*websocket_on_message_received)(uint8_t*, uint16_t);
 typedef struct {
     int socket;
-    struct pollfd pfd;
     websocket_on_message_received on_message_received;
     pthread_t thread;
     websocket_frame* frame;

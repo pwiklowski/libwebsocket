@@ -14,6 +14,12 @@ int websocket_connect(char* ip, uint16_t port) {
     addr.sin_addr.s_addr = inet_addr(ip);
     addr.sin_family = AF_INET;
 
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 20*1000;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
     if(connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in) ) == -1)
     {
         printf("Error connecting socket\n");
@@ -88,10 +94,9 @@ void* websocket_runner(void* arg) {
     uint8_t buffer[512]; // TODO: reduce size
 
     while(1){
-        int16_t rc = poll(&client->pfd, 1, 20); // 1000 ms timeout
-        if (rc > 0){
+        size_t r = recv(client->socket, buffer, 2,0);
+        if (r == 2){
 
-            int r = recv(client->socket, buffer, 2,0);
             printf("r %d\n", r);
 
             uint32_t packet_size = buffer[1] & 0x7F;
@@ -113,7 +118,7 @@ void* websocket_runner(void* arg) {
                 websocket_frame frame;
                 frame.payload_len = packet_size;
                 frame.rawdata = malloc(packet_size);
-                rc = recv(client->socket, frame.rawdata, packet_size, 0);
+                r = recv(client->socket, frame.rawdata, packet_size, 0);
                 if (client->on_message_received != NULL){
                     client->on_message_received(frame.rawdata, packet_size);
                 }
@@ -137,9 +142,6 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
     uint8_t buffer[512];
     int res;
 
-    client->pfd.fd = client->socket;
-    client->pfd.events = POLLIN;
-
     char request_headers[1024];
 
     char* websocket_key = "AQIDBAUGBwgJCgsMDQ4PEC=="; //TODO: randomize
@@ -157,9 +159,8 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
 
     size_t rc;
     while(1){
-        rc = poll(&client->pfd, 1, 20); // 1000 ms timeout
+        rc = recv(client->socket, buffer,sizeof(buffer),0);
         if (rc >0){
-            rc = recv(client->socket, buffer,sizeof(buffer),0);
             //TODO: add real handshake
             if (strncmp("HTTP/1.1 101 Switching Protocols", buffer, 32) != 0) {
                 return false;
