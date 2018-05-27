@@ -148,7 +148,7 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
 
     char request_host[100];
     if (port != 80) {
-        snprintf(request_host, 255, "%s:%s", ip , port);
+        snprintf(request_host, 255, "%s:%d", ip , port);
     } else {
         snprintf(request_host, 255, "%s", ip);
     }
