@@ -40,5 +40,6 @@ typedef struct {
 
 websocket_client websocket_init();
 bool websocket_open(websocket_client* client, char* ip, uint16_t port, char* path);
+void websocket_send_text(websocket_client* client, char* data, uint16_t len);
 
 #endif // WEBSOCKET_H
