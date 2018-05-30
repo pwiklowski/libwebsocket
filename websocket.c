@@ -26,7 +26,7 @@ int websocket_connect(char* ip, uint16_t port) {
         return -1;
     }
 
-    printf("Successfully connected to port %u\n");
+    printf("Successfully connected");
     return fd;
 }
 
@@ -162,7 +162,7 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
         rc = recv(client->socket, buffer,sizeof(buffer),0);
         if (rc >0){
             //TODO: add real handshake
-            if (strncmp("HTTP/1.1 101 Switching Protocols", buffer, 32) != 0) {
+            if (strncmp("HTTP/1.1 101 Switching Protocols", (char*)buffer, 32) != 0) {
                 return false;
             }
             break;
