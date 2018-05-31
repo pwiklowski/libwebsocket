@@ -179,6 +179,10 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
 
 bool websocket_open(websocket_client* client, char* ip, uint16_t port, char* path) {
     client->socket = websocket_connect(ip, port);
-    return websocket_handshake(client, ip, path, path);
+    if (client->socket == -1) {
+        return false;
+    } else {
+        return websocket_handshake(client, ip, path, path);
+    }
 }
 
