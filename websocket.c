@@ -69,6 +69,7 @@ void websocket_send_text(websocket_client* client, char* data, uint16_t len) {
 
 
     if (client->frame == NULL){
+        frame->prev = NULL;
         client->frame = frame;
     } else {
         frame->prev = client->frame;
