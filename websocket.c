@@ -33,6 +33,7 @@ int websocket_connect(char* ip, uint16_t port) {
 websocket_client websocket_init() {
     websocket_client client;
     client.on_message_received = NULL;
+    client.on_connected = NULL;
     client.frame = NULL;
     return client;
 }
@@ -173,6 +174,10 @@ bool websocket_handshake(websocket_client* client, char* ip, uint16_t port, char
     if (pthread_create(&client->thread, NULL, websocket_runner, client)) {
         printf("Error creating thread");
         return false;
+    }
+
+    if (client->on_connected != NULL) {
+        client->on_connected();
     }
 
     return true;

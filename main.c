@@ -14,10 +14,15 @@ void sender(){
     }
 }
 
+void on_connected() {
+    printf("on_connected");
+}
+
 int main(int argc, const char * argv[]) {
 
     client = websocket_init();
     client.on_message_received = on_data_received;
+    client.on_connected = on_connected;
 
     if (websocket_open(&client, "127.0.0.1", 8080, "/connect")) {
         pthread_t t;

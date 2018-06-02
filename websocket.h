@@ -31,9 +31,11 @@ typedef struct  {
 
 
 typedef void (*websocket_on_message_received)(uint8_t*, uint16_t);
+typedef void (*websocket_on_connected)();
 typedef struct {
     int socket;
     websocket_on_message_received on_message_received;
+    websocket_on_connected on_connected;
     pthread_t thread;
     websocket_frame* frame;
 } websocket_client;
