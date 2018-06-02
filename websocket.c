@@ -134,10 +134,25 @@ void* websocket_runner(void* arg) {
 
             if (packet_size < 0xFFFF) {
                 websocket_frame frame;
+                frame.opcode = buffer[0] & 0xF;
                 frame.payload_len = packet_size;
-                frame.rawdata = malloc(packet_size);
-                r = recv(client->socket, frame.rawdata, packet_size, 0);
-                if (client->on_message_received != NULL){
+
+                if (packet_size > 0) {
+                    frame.rawdata = malloc(packet_size);
+                    r = recv(client->socket, frame.rawdata, packet_size, 0);
+                }
+
+                if (frame.opcode == WS_OPCODE_PING) {
+                    websocket_frame pong = {
+                            .fin = true,
+                            .opcode = WS_OPCODE_PONG,
+                            .payload_len = 0,
+                            .mask = true,
+                            .rawdata = NULL
+                    };
+
+                    websocket_send_frame(client, &pong);
+                } else if (client->on_message_received != NULL){
                     client->on_message_received(frame.rawdata, packet_size);
                 }
             } else {
