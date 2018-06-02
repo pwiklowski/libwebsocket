@@ -35,6 +35,8 @@ websocket_client websocket_init() {
     client.on_message_received = NULL;
     client.on_connected = NULL;
     client.frame = NULL;
+
+    srand(time(NULL));
     return client;
 }
 
@@ -44,14 +46,28 @@ void websocket_send_frame(websocket_client* client, websocket_frame* frame) {
     header[0] = frame->fin << 7;
     header[0] |= frame->opcode;
 
+    header[1] = frame->mask << 7;
+
     if (frame->payload_len < 125) {
-        header[1] = frame->payload_len;
+        header[1] |= frame->payload_len;
         send(client->socket, header, 2, 0);
     } else if (frame->payload_len < 0xFFFF) {
-        header[1] = 126;
+        header[1] |= 126;
         header[2] = frame->payload_len >> 8;
         header[3] = frame->payload_len & 0xff;
         send(client->socket, header, 4, 0);
+    }
+
+    if (frame->mask) {
+        uint8_t masking_key[4];
+        for (uint8_t i=0; i<4; i++) {
+            masking_key[i] = rand() % 0xFF;
+        }
+
+        for (uint16_t i=0; i<frame->payload_len; i++) {
+            frame->rawdata[i] = frame->rawdata[i] ^ masking_key[i%4];
+        }
+        send(client->socket, masking_key, 4, 0);
     }
 
     send(client->socket, frame->rawdata, frame->payload_len, 0);
@@ -62,7 +78,7 @@ void websocket_send_text(websocket_client* client, char* data, uint16_t len) {
 
     frame->fin = true;
     frame->opcode = WS_OPCODE_TEXT;
-    frame->mask = false;
+    frame->mask = true;
     frame->payload_len = len;
     frame->rawdata = malloc(len);
 
