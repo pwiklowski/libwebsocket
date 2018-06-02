@@ -28,7 +28,7 @@ int main(int argc, const char * argv[]) {
         pthread_t t;
         pthread_create(&t, 0, sender, 0);
         pthread_join(&t, NULL);
-        pthread_join(&client.thread, NULL);
+        pthread_join(client.thread, NULL);
     }
 
     return 0;
