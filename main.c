@@ -21,12 +21,17 @@ void on_data_received(uint8_t* data, uint16_t len) {
 
         return;
     }
-    const cJSON *resolution = cJSON_GetObjectItem(message, "name");
+    const cJSON *name = cJSON_GetObjectItem(message, "name");
+    const cJSON *payload = cJSON_GetObjectItem(message, "payload");
 
-    printf("msg name:\"%s\"\n", resolution->valuestring);
+    printf("msg name:\"%s\"\n", name->valuestring);
 
-    if (strcmp(resolution->valuestring, "RequestGetDevices") == 0) {
+    if (strcmp(name->valuestring, "RequestGetDevices") == 0) {
         send_device_list();
+    } else if (strcmp(name->valuestring, "RequestSetValue") == 0) {
+        cJSON* value = cJSON_GetObjectItem(payload, "value");
+        cJSON* resource = cJSON_GetObjectItem(payload, "resource");
+        handle_set_value(resource, value);
     }
 
     cJSON_Delete(message);
@@ -39,6 +44,14 @@ void authorize(){
     cJSON_AddStringToObject(payload, "uuid", "2f6df06e-f634-4249-b609-5e4fbbe82c6a");
 
     send_message("RequestAuthorize", payload);
+}
+
+void handle_set_value(cJSON* resource, cJSON* value) {
+    cJSON* v = cJSON_GetObjectItem(value, "value");
+
+    bool resourceValue = cJSON_IsTrue(v) ? true : false;
+
+    printf("set %s %d\n", resource->valuestring, resourceValue);
 }
 
 void send_device_list(){
